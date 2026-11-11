@@ -1,0 +1,6 @@
+[submodule "ip/fabulous-tiles"]
+	path = ip/fabulous-tiles
+	url = ../../mole99/fabulous-tiles.git
+[submodule "ip/sky130_bmlabs_reram"]
+	path = ip/sky130_bmlabs_reram
+	url = ../../BMsemi/sky130_bmlabs_reram.git

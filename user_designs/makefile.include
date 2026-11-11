@@ -1,0 +1,123 @@
+# Paths
+PDK 			?= sky130A
+FABRIC 			?= classic_fabric_reram
+TILE_LIBRARY		?= classic
+FABULOUS_ROOT 		?= $(abspath ../../../fabrics/$(FABRIC)/macro/$(PDK)/fabulous)
+PCF_CONSTRAINTS 		?= $(abspath $(FABULOUS_ROOT)/../../../constraints.pcf)
+TOP 			?= top_wrapper
+#CORNER			?= nom_typ_1p20V_25C
+FABRIC_UPPER             = $(shell echo $(FABRIC) | tr  '[:lower:]' '[:upper:]')
+
+# Available flip-flops and init value
+FFS  = -ff "\$$_DFF_P_" x
+FFS += -ff "\$$_DFFE_PP_" x
+FFS += -ff "\$$_SDFF_PP?_" x
+FFS += -ff "\$$_SDFFE_PP?P_" x
+FFS += -ff "\$$_DLATCH_?_" x
+
+$(info $(PDK))
+$(info $(FABRIC))
+$(info $(TILE_LIBRARY))
+
+CELLS_MAP		 = -cells-map ../../../../ip/fabulous-tiles/primitives/FABULOUS_LC/yosys/techmap/cells_map.v
+
+ARITH_MAP		 = -arith-map ../../../../ip/fabulous-tiles/primitives/FABULOUS_LC/yosys/techmap/arith_map.v
+
+MULTIPLIER_MAP_PATH 	 = -multiplier-map ../../../../ip/fabulous-tiles/primitives/MACC_8x8_20/yosys/techmap/MACC_8x8_20_map.v 8 8 2 2 12
+
+EXTRA_PLIBS_PATH  = -extra-plib ../../../../ip/fabulous-tiles/primitives/FABULOUS_LC/yosys/primitives/prims.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/IOBUF/yosys/primitives/IOBUF.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/IBUF/yosys/primitives/IBUF.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/OBUF/yosys/primitives/OBUF.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/TBUF/yosys/primitives/TBUF.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/GBUF/yosys/primitives/GBUF.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/ODDR/yosys/primitives/ODDR.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/IDDR/yosys/primitives/IDDR.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/SYS_RESET/yosys/primitives/SYS_RESET.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/RAM_32x4_2R_1W/yosys/primitives/RAM_32x4_2R_1W.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/fabulous-tiles/primitives/MACC_8x8_20/yosys/primitives/MACC_8x8_20.v
+EXTRA_PLIBS_PATH += -extra-plib ../../../../ip/extra-tiles/primitives/RERAM_CIM_32x32/yosys/primitives/RERAM_CIM_32x32.v
+
+EXTRA_MAPS_PATH  = -extra-map ../../../../ip/fabulous-tiles/primitives/FABULOUS_LC/yosys/techmap/ff_map.v
+EXTRA_MAPS_PATH += -extra-map ../../../../ip/fabulous-tiles/primitives/IOBUF/yosys/techmap/IOBUF_map.v
+EXTRA_MAPS_PATH += -extra-map ../../../../ip/fabulous-tiles/primitives/RAM_32x4_2R_1W/yosys/techmap/RAM_32x4_2R_1W_map.v
+
+EXTRA_MLIBMAPS_PATH	 = -extra-mlibmap ../../../../ip/fabulous-tiles/primitives/RAM_32x4_2R_1W/yosys/memlib/RAM_32x4_2R_1W_lib.txt
+
+CLKBUF_MAP_PATH		 = -clkbuf-map ../../../../ip/fabulous-tiles/primitives/GBUF/yosys/techmap/GBUF_map.v
+
+BIT_GEN 			?= ../../../scripts/bit_gen.py
+BIT_TO_HEX 		?= ../../../scripts/bit_to_hex.py
+
+all: synth pnr bitstream hex
+
+synth:
+	yosys \
+	-p \
+	"synth_fabulous \
+	-top $(TOP) \
+	-lut 4 \
+	-carry ha \
+	$(FFS) \
+	$(CELLS_MAP) \
+	$(ARITH_MAP) \
+	$(MULTIPLIER_MAP_PATH) \
+	$(EXTRA_PLIBS_PATH) \
+	$(EXTRA_MAPS_PATH) \
+	$(EXTRA_MLIBMAPS_PATH) \
+	$(CLKBUF_MAP_PATH) ; \
+	show -format dot -prefix $(TOP); \
+	write_json -noscopeinfo $(TOP).json; \
+	" \
+	--define $(FABRIC_UPPER) $(RTL)
+.PHONY: synth
+
+pnr:
+	FAB_ROOT=$(FABULOUS_ROOT) \
+	nextpnr-generic \
+	--uarch fabulous \
+	--json $(TOP).json \
+	--write $(TOP)_out.json \
+	-o fasm=$(TOP).fasm \
+	-o corner=$(CORNER) \
+	-o pcf=$(PCF_CONSTRAINTS) \
+	--verbose \
+	--log $(TOP)_log.txt \
+	--timing-allow-fail
+.PHONY: pnr
+
+bitstream:
+	python3 $(BIT_GEN) \
+	-genBitstream \
+	$(TOP).fasm \
+	$(FABULOUS_ROOT)/bitStreamSpec.bin \
+	$(TOP).bit
+.PHONY: bitstream
+
+hex:
+	python3 $(BIT_TO_HEX) \
+	$(TOP).bit \
+	$(TOP).hex
+
+clean:
+	rm -rf $(TOP).json
+	rm -rf $(TOP)_out.json
+	rm -rf $(TOP).fasm
+	rm -rf $(TOP)_log.txt
+	rm -rf $(TOP).bit
+	rm -rf $(TOP).hex
+	rm -rf $(TOP).vh
+	rm -rf $(TOP).vhd
+	rm -rf $(TOP).csv
+	rm -rf $(TOP).dot
+.PHONY: clean
+
+help:
+	@echo "Commands:"
+	@echo " synth           ... Synthesize the user design"
+	@echo " pnr             ... Run Place and Route"
+	@echo " bitstream       ... Generate the bitstream"
+	@echo " hex             ... Convert bitstream to hex"
+	@echo " clean           ... Delete all generated files"
+	@echo " help            ... Show this help message"
+.phony: help

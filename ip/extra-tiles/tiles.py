@@ -1,0 +1,361 @@
+#!/usr/bin/env python3
+# Copyright 2025 FABulous Contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import os
+import sys
+import yaml
+import fnmatch
+import argparse
+
+from librelane.flows import Flow, FlowError
+from librelane.common import get_pdk_hash
+from librelane.logging import (
+    verbose,
+    debug,
+    info,
+    rule,
+    success,
+    warn,
+    err,
+    subprocess,
+)
+
+__dir__ = os.path.dirname(os.path.realpath(__file__))
+
+# Tile Configuration
+#
+# The order of the patterns is important:
+# the first mathcing pattern will be used.
+#
+# The config is split into the following levels:
+# level 1: tile library
+# level 2: PDK
+# level 3: SCL (standard cell library)
+# level 4: tile name
+#
+# TODO: allow to supply configs externally
+#       via YAML or Python script
+tile_sizes = {
+    "classic": {
+        "sky130*": {
+            "*": {
+                # High density cells
+                # Width should be multiple of 0.46 (met2 pitch)
+                # Height should be multiple of 0.68 (met3 pitch)
+                # Standard cell row height: 2.72 (4 met3 track)
+
+                "*E_RERAM"  : (122*0.46+20*0.46, 328*0.68*2),
+
+                "NE*"       : (122*0.46+20*0.46,  84*0.68),
+                "NW*"       : (122*0.46+20*0.46,  84*0.68),
+                "SE*"       : (122*0.46+20*0.46,  84*0.68),
+                "SW*"       : (122*0.46+20*0.46,  84*0.68),
+                
+                "N*"        : (458*0.46,  84*0.68),
+                "E*"        : (122*0.46+20*0.46, 328*0.68),
+                "S*"        : (458*0.46,  84*0.68),
+                "W*"        : (122*0.46+20*0.46, 328*0.68),
+            },
+        },
+    },
+}
+
+tile_densities = {
+    "classic": {
+        "sky130*": {
+            "*": {
+                "LUT4x8_ha" : 58,
+                "S_term_RegFile": 10, # prevent numerical instability during GPL
+                "S_term_MACC": 10, # prevent numerical instability during GPL
+                "MACC": 75, # prevent "heap underflow during 3D maze routing"
+                "*"         : None,
+            },
+        },
+        "gf180mcu*": {
+            "gf180mcu_as_sc_mcu7t3v3": {
+                "LUT4x8_ha" : 75,
+                "*"         : None,
+            },
+            "*": {
+                "LUT4x8_ha" : 85,
+                "*"         : None,
+            },
+        },
+        "ihp-sg13*": {
+            "*": {
+                "LUT4x8_ha" : 96,
+                "RegFile"   : 80,
+                "N_IO4"     : 90,
+                "*"         : None,
+            },
+        },
+        "icsprout55*": {
+            "*": {
+                "LUT4x8_ha" : 96,
+                "*"         : None,
+            },
+        },
+    },
+    "tiny": {
+        "ihp-sg13*": {
+            "*": {
+                "LUT4x8_ha" : 96,
+                "*"         : None,
+            },
+        },
+        "sky130*": {
+            "*": {
+                "LUT4x8_ha" : 96,
+                "*"         : None,
+            },
+        },
+        "gf180mcu*": {
+            "*": {
+                "LUT4x8_ha" : 96,
+                "*"         : None,
+            },
+        },
+        "icsprout55*": {
+            "*": {
+                "LUT4x8_ha" : 96,
+                "*"         : None,
+            },
+        },
+    },
+}
+
+tile_obstruction_layers = {
+    "*": {
+        "sky130*": {
+            "*": {
+                "*"         : ["met1", "met2", "met3", "met4", "met5"],
+            },
+        },
+        "gf180mcu*": {
+            "*": {
+                "*"         : ["Metal1", "Metal2", "Metal3", "Metal4", "Metal5"],
+            },
+        },
+        "ihp-sg13g2": {
+            "*": {
+                "*"         : ["Metal1", "Metal2", "Metal3", "Metal4", "Metal5", "TopMetal1", "TopMetal2"],
+            },
+        },
+        "ihp-sg13cmos5l": {
+            "*": {
+                "*"         : ["Metal1", "Metal2", "Metal3", "Metal4", "TopMetal1"],
+            },
+        },
+        "icsprout55": {
+            "*": {
+                "*"         : ["MET1", "MET2", "MET3", "MET4", "MET5", "T4M2", "RDL"],
+            },
+        },
+    },
+}
+
+def main(tile, pdk_root=None, pdk=None, scl=None, tag=None, tile_library=None, last_run=None, gui=None):
+    target_flow = Flow.factory.get("FABulousTile")
+
+    if pdk == "icsprout55":
+        # Magic support seems to be mostly broken/wip
+        target_flow = target_flow.Substitute([("Magic.Streamout", None)])
+        target_flow = target_flow.Substitute([("KLayout.XOR", None)])
+        target_flow = target_flow.Substitute([("Magic.DRC", None)])
+        target_flow = target_flow.Substitute([("Magic.SpiceExtraction", None)])
+        target_flow = target_flow.Substitute([("Netgen.LVS", None)])
+
+    if gui == "openroad":
+        target_flow = Flow.factory.get("OpenInOpenROAD")
+
+    if gui == "klayout":
+        target_flow = Flow.factory.get("OpenInKLayout")
+
+    common_config_path = os.path.join(__dir__, "tiles", tile_library, "common", "common.yaml")
+    tile_config_path = os.path.join(__dir__, "tiles", tile_library, tile, "config.yaml")
+
+    if not os.path.isfile(common_config_path):
+        raise FlowError(f"Error: Couldn't find common config: {common_config_path}") from None
+
+    if not os.path.isfile(tile_config_path):
+        raise FlowError(f"Error: Couldn't find tile config: {tile_config_path}") from None
+
+    # Run the flow
+    config = yaml.safe_load(open(common_config_path))
+    tile_config = yaml.safe_load(open(tile_config_path))
+    config.update(tile_config)
+    
+    # TODO: get default SCL from LibreLane
+    if scl == None or scl == "default":
+        if fnmatch.fnmatch(pdk, "sky130*"):
+            scl = "sky130_fd_sc_hd"
+        if fnmatch.fnmatch(pdk, "ihp-sg13g2"):
+            scl = "sg13g2_stdcell"
+        if fnmatch.fnmatch(pdk, "ihp-sg13cmos5l"):
+            scl = "sg13cmos5l_stdcell"
+        if fnmatch.fnmatch(pdk, "gf180mcu*"):
+            scl = "gf180mcu_fd_sc_mcu7t5v0"
+        if fnmatch.fnmatch(pdk, "icsprout55"):
+            scl = "ics55_LLSC_H7CR"
+
+    def match_config(config, tile_library, pdk, scl, tile):
+        found_value = None
+        found = False
+
+        # Level 1: tile library
+        for tile_library_pattern, pdk_dict in config.items():
+            if fnmatch.fnmatch(tile_library, tile_library_pattern):
+                print(f"Matched tile library {tile_library} with {tile_library_pattern}")
+                # Level 2: PDK
+                for pdk_pattern, scl_dict in pdk_dict.items():
+                    if fnmatch.fnmatch(pdk, pdk_pattern):
+                        print(f"Matched PDK {pdk} with {pdk_pattern}")
+                        # Level 3: SCL
+                        for scl_pattern, tile_dict in scl_dict.items():
+                            if fnmatch.fnmatch(scl, scl_pattern):
+                                print(f"Matched SCL {scl} with {scl_pattern}")
+                                # Level 3: tile name
+                                for tile_pattern, value in tile_dict.items():
+                                    if fnmatch.fnmatch(tile, tile_pattern):
+                                        print(f"Matched tile {tile} with {tile_pattern}")
+                                        found_value = value
+                                        found = True
+                                        break
+                                break
+                        break
+                break
+        
+        if not found:
+            raise FlowError(f"Couldn't find a match for {tile} with {tile_library}, {pdk}, {scl}") from None
+        
+        return found_value
+
+    # Get the tile size
+    tile_size = match_config(tile_sizes, tile_library, pdk, scl, tile)
+
+    # Get the target density
+    target_density = match_config(tile_densities, tile_library, pdk, scl, tile)
+
+    obs = []
+    for layer in match_config(tile_obstruction_layers, tile_library, pdk, scl, tile):
+        # bottom
+        obs.append([layer, 0, -1, tile_size[0], 0])
+        # top
+        obs.append([layer, 0, tile_size[1], tile_size[0], tile_size[1]+1])
+        # left
+        obs.append([layer, -1, 0, 0, tile_size[1]])
+        # right
+        obs.append([layer, tile_size[0], 0, tile_size[0]+1, tile_size[1]])
+
+    print(f"Tile size: {tile_size}")
+    print(f"Tile target density: {target_density}")
+    print(f"Tile obstructions: {obs}")
+    
+    config["FP_SIZING"] = "absolute"
+    config["DIE_AREA"] = [0, 0, tile_size[0], tile_size[1]]
+
+    if target_density:
+        config["PL_TARGET_DENSITY_PCT"] = target_density
+
+    if obs:
+        config["ROUTING_OBSTRUCTIONS"] = obs
+
+    # Workaround for https://github.com/The-OpenROAD-Project/OpenROAD/issues/10273
+    # config["CTS_APPLY_NDR"] = "none"
+
+    print(f"config: {config}")
+
+    design_dir = os.path.join(__dir__, "tiles", tile_library, tile)
+    print(f"design_dir: {design_dir}")
+
+    # Fetch the PDK using ciel
+    if pdk_root is None or pdk_root == "":
+        import ciel
+        from ciel.source import StaticWebDataSource
+
+        opdks_rev = get_pdk_hash(pdk)
+        ciel_home = ciel.get_ciel_home(pdk_root)
+        
+        pdk_family = None
+        if family := ciel.Family.by_name.get(pdk):
+            pdk = family.default_variant
+            pdk_family = family.name
+            verbose(f"Resolved PDK variant {family.default_variant}.")
+        else:
+            for family in ciel.Family.by_name.values():
+                if pdk in family.variants:
+                    pdk_family = family.name
+                    break
+
+        if pdk_family is None:
+            err(f"Could not resolve the PDK '{pdk}'.")
+            exit(1)
+        
+        include_libraries = ["default"]
+        if scl is not None:
+            include_libraries.append(scl)
+        
+        version = ciel.fetch(
+            ciel_home,
+            pdk_family,
+            opdks_rev,
+            data_source=StaticWebDataSource(
+                "https://fossi-foundation.github.io/ciel-releases"
+            ),
+            include_libraries=include_libraries,
+        )
+        pdk_root = version.get_dir(ciel_home)
+    
+    print(f"pdk_root: {pdk_root}")
+    print(f"pdk: {pdk}")
+    print(f"scl: {scl}")
+    
+    flow = target_flow(
+        config,
+        design_dir=design_dir,
+        pdk_root=pdk_root,
+        pdk=pdk,
+        scl=scl,
+    )
+    
+    state_out = flow.start(tag=tag, last_run=last_run)
+
+    print("Done!")
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+                description="This script uses the 'FABulousTile' flow to implement tiles.",
+                epilog="Copyright © 2026, FABulous Contributors")
+
+    parser.add_argument("tilename")
+    parser.add_argument('--gui', choices=["openroad", "klayout"])
+    
+    args = parser.parse_args()
+    
+    pdk = os.getenv("PDK")
+    pdk_root = os.getenv("PDK_ROOT")
+    scl = os.getenv("SCL")
+    
+    if pdk is None:
+        raise FlowError(f"Please define PDK") from None
+    
+    tile_library = os.getenv("TILE_LIBRARY")
+    
+    last_run = False
+    if args.gui:
+        last_run = True
+
+    # Implement the tile
+    main(args.tilename, gui=args.gui, pdk=pdk, pdk_root=pdk_root, scl=scl if (scl != "") else None, tile_library=tile_library, last_run=last_run)

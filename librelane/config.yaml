@@ -1,0 +1,91 @@
+meta:
+  version: 3
+  flow: Classic
+  substituting_steps:
+      Magic.DRC: null
+      Checker.MagicDRC: null
+
+DESIGN_NAME: "double_wide_openframe_project_wrapper"
+
+LINTER_DISABLE_WARNINGS: [
+    "DECLFILENAME", "EOFNEWLINE", "PINCONNECTEMPTY", "PINMISSING", "UNUSEDSIGNAL"
+]
+
+VERILOG_FILES:
+- dir::../src/double_wide_openframe_project_wrapper.v
+- dir::../src/chip_core.sv
+- dir::../src/fabric_wrapper.sv
+- dir::../ip/fabric_config/fabric_config.sv
+- dir::../ip/fabric_spi/fabric_spi_controller.sv
+- dir::../ip/fabric_spi/fabric_spi_receiver.sv
+
+CLOCK_PORT: "gpio_in[0]"
+CLOCK_PERIOD: 100
+
+FP_SIZING: "absolute"
+DIE_AREA: [0, 0, 6754.63, 4766.63]
+CORE_AREA: [40, 40, 6714.63, 4726.63]
+
+FP_DEF_TEMPLATE: "dir::pin_template.def"
+# FP_TEMPLATE_MATCH_MODE: "permissive"
+
+PL_TARGET_DENSITY_PCT: 25
+
+VDD_NETS: ["vccd1", "vccd2", "vccd", "vddio", "vdda", "vdda1", "vdda2"]
+GND_NETS: ["vssd1", "vssd2", "vssd", "vssio", "vssa", "vssa1", "vssa2"]
+
+PDN_CFG: dir::pdn_cfg.tcl
+
+PDN_MULTILAYER: true
+PDN_VPITCH: 180
+PDN_HPITCH: 180
+PDN_CORE_RING: true
+#ERROR_ON_PDN_VIOLATIONS: false
+
+MACROS:
+  classic_fabric_reram:
+    gds:
+      - dir::../fabrics/classic_fabric_reram/macro/sky130A/gds/classic_fabric_reram.gds
+    lef:
+      - dir::../fabrics/classic_fabric_reram/macro/sky130A/lef/classic_fabric_reram.lef
+    nl:
+      - dir::../fabrics/classic_fabric_reram/macro/sky130A/nl/classic_fabric_reram.nl.v
+    instances:
+      chip_core.fabric_wrapper.classic_fabric_reram:
+        location: [250, 250]
+        orientation: N
+
+  sky130_bmlabs_reram__cim32x32:
+    gds:
+      - dir::../ip/sky130_bmlabs_reram/gds/sky130_bmlabs_reram__cim32x32.gds
+    lef:
+      - dir::../ip/sky130_bmlabs_reram/lef/sky130_bmlabs_reram__cim32x32.lef
+    nl:
+      - dir::../ip/sky130_bmlabs_reram/verilog/vh/sky130_bmlabs_reram__cim32x32.vh
+    instances:
+      chip_core.fabric_wrapper.reram_0:
+        location: ["expr::( 10217 * 0.46 )", "expr::( 3455 * 0.68 )"] # met2: 0.46, met3: 0.68
+        orientation: N
+      chip_core.fabric_wrapper.reram_1:
+        location: ["expr::( 10217 * 0.46 )", "expr::( 368 * 0.68 )"] # met2: 0.46, met3: 0.68
+        orientation: N
+
+PDN_MACRO_CONNECTIONS:
+- "chip_core.fabric_wrapper.classic_fabric_reram vccd1 vssd1 VPWR VGND"
+- "chip_core.fabric_wrapper.reram_0 vccd1 vssd1 VDDC1 VSS"
+- "chip_core.fabric_wrapper.reram_0 vccd2 vssd1 VDDC2 VSS"
+- "chip_core.fabric_wrapper.reram_0 vdda vssd1 VDDA1 VSS"
+- "chip_core.fabric_wrapper.reram_0 vdda1 vssd1 VDDA2 VSS"
+- "chip_core.fabric_wrapper.reram_1 vccd1 vssd1 VDDC1 VSS"
+- "chip_core.fabric_wrapper.reram_1 vccd2 vssd1 VDDC2 VSS"
+- "chip_core.fabric_wrapper.reram_1 vdda vssd1 VDDA1 VSS"
+- "chip_core.fabric_wrapper.reram_1 vdda1 vssd1 VDDA2 VSS"
+
+MAGIC_EXT_UNIQUE: "notopports"
+PRIMARY_GDSII_STREAMOUT_TOOL: "klayout"
+
+# Prevent routing over the ReRAM macros,
+# which confuses OpenROAD for some reason...
+ROUTING_OBSTRUCTIONS:
+- [met5, "expr::( 10217 * 0.46 )", "expr::( 3455 * 0.68 )", "expr::( (10217 * 0.46) + 1910 )", "expr::( (3455 * 0.68) + 2010.14 )"]
+- [met5, "expr::( 10217 * 0.46 )", "expr::( 368 * 0.68 )", "expr::( (10217 * 0.46) + 1910 )", "expr::( (368 * 0.68) + 2010.14 )"]

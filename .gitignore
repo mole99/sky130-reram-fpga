@@ -1,0 +1,27 @@
+# Sphinx build folder
+build
+
+# Virtual environment
+*.venv
+
+# Fabric
+macro/
+runs/
+
+# explicitly allow nextpnr model
+!user_designs/fabrics/*/macro/
+
+*.json
+*.png
+*.svg
+
+# Python
+*.egg-info/
+__pycache__/
+
+# LibreOffice
+.~lock*
+
+# cocotb
+sim_build/
+*.gtkw
