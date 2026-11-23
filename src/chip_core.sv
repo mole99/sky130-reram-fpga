@@ -233,8 +233,8 @@ module chip_core (
         .miso_o     (spi_receiver_miso_o)
     );
 
-    // bitstream size: 0x1698
-    // bitstream word size: 0x5A6
+    // bitstream size: 0x89E8
+    // bitstream word size: 0x227A
     fabric_spi_controller #(
         .BITSTREAM_LENGTH_WORDS (32'h227A),
         .SLOT_OFFSET_WORDS      (32'h4000),

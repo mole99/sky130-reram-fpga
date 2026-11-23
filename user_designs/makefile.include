@@ -70,7 +70,7 @@ synth:
 	write_json -noscopeinfo $(TOP).json; \
 	write_verilog -noattr $(TOP)_synth.v; \
 	" \
-	--define $(FABRIC_UPPER) $(RTL)
+	--define $(FABRIC_UPPER) --define NUM_IOS=36 $(RTL)
 .PHONY: synth
 
 pnr:

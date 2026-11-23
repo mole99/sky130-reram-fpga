@@ -73,7 +73,7 @@ module double_wide_openframe_project_wrapper (
 
     // gpio_in
   
-    assign fpga_clk_i   = gpio_in[0];
+    assign fpga_clk_i  = gpio_in[0];
     assign fpga_rst_ni = gpio_in[1];
 
     assign fpga_sclk_i = gpio_in[2];

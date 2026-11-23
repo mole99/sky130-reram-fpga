@@ -4,11 +4,7 @@
 `default_nettype none
 
 module all_ones (
-    `ifdef CLASSIC_FABRIC_HEICHIPS25
-    output wire [31:0] all
-    `else
-    output wire [27:0] all
-    `endif
+    output wire [`NUM_IOS-1:0] all
 );
 
     assign all = '1;
