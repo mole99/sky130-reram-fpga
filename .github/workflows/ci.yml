@@ -155,7 +155,12 @@ jobs:
           path: ip/extra-tiles/tiles
           key: cache-extra-tiles-${{ env.TILE_LIBRARY }}-${{ matrix.pdk }}-${{ matrix.scl }}-${{ env.REPO_SHORT_HASH }}
           fail-on-cache-miss: true
-      - name: Stitch the tiles
+      - name: Cache the Fabric
+        uses: actions/cache@v5
+        with:
+          path: fabrics/${{ matrix.fabric }}/macro/${{ matrix.pdk }}/
+          key: cache-fabric-${{ matrix.fabric }}-${{ matrix.pdk }}-${{ matrix.scl }}-${{ env.REPO_SHORT_HASH }}
+      - name: Stitch the Fabric
         run: |
           PDK=${{ matrix.pdk }} SCL=${{ matrix.scl }} nix develop --command make ${{ matrix.fabric }}
       - name: Upload Macro Folder
@@ -168,6 +173,11 @@ jobs:
       - name: Copy the fabric
         run: |
           PDK=${{ matrix.pdk }} SCL=${{ matrix.scl }} nix develop --command make ${{ matrix.fabric }}-copy
+      - name: Cache the User Designs
+        uses: actions/cache@v5
+        with:
+          path: user_designs/
+          key: cache-user-designs-${{ matrix.fabric }}-${{ matrix.pdk }}-${{ matrix.scl }}-${{ env.REPO_SHORT_HASH }}
       - name: Implement the User Designs
         run: |
           cd user_designs; PDK=${{ matrix.pdk }} TILE_LIBRARY=${{ env.TILE_LIBRARY }} FABRIC=${{ matrix.fabric }} nix develop --command make all
@@ -177,3 +187,118 @@ jobs:
       - name: Simulate the Fabric (RTL Simulation)
         run: |
           PDK=${{ matrix.pdk }} TILE_LIBRARY=${{ env.TILE_LIBRARY }} FABRIC=${{ matrix.fabric }} nix develop --command bash -c "cd tb; python3 fabric_tb.py"
+
+  chip:
+    runs-on: ubuntu-24.04
+    name: Build the Chip
+    needs:
+      - fabrics
+    strategy:
+      matrix:
+        pdk: [sky130A]
+        fabric: [classic_fabric_reram]
+        scl: [default]
+    steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+      - uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+      - name: Setup Nix
+        uses: ./.github/actions/setup_nix
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+      - name: Build with Nix
+        uses: ./.github/actions/build_nix
+        with:
+          nix_system: x86_64-linux
+      - name: Check Nix
+        run: |
+          sudo du -hs /nix/store/* | sort -h | tail -n 10
+          sudo tree /nix/store/*-librelane || true
+      - name: Get the tile library
+        run: |
+          echo "TILE_LIBRARY=$(echo "${{ matrix.fabric }}" | cut -d'_' -f1)" >> $GITHUB_ENV
+          echo "TILE_LIBRARY_SHORT_HASH=$(git rev-parse --short HEAD:ip/fabulous-tiles)" >> $GITHUB_ENV
+          echo "REPO_SHORT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Restore Tiles
+        uses: actions/cache/restore@v5
+        with:
+          path: ip/fabulous-tiles/tiles
+          key: cache-tiles-${{ env.TILE_LIBRARY }}-${{ matrix.pdk }}-${{ matrix.scl }}-${{ env.TILE_LIBRARY_SHORT_HASH }}
+          fail-on-cache-miss: true
+      - name: Restore Extra Tiles
+        uses: actions/cache/restore@v5
+        with:
+          path: ip/extra-tiles/tiles
+          key: cache-extra-tiles-${{ env.TILE_LIBRARY }}-${{ matrix.pdk }}-${{ matrix.scl }}-${{ env.REPO_SHORT_HASH }}
+          fail-on-cache-miss: true
+      - name: Restore Fabric
+        uses: actions/cache/restore@v5
+        with:
+          path: ip/fabulous-fabrics/fabrics/${{ matrix.fabric }}/macro/${{ matrix.pdk }}/
+          key: cache-fabric-${{ matrix.fabric }}-${{ matrix.pdk }}-${{ matrix.scl }}-${{ env.REPO_SHORT_HASH }}
+          fail-on-cache-miss: true
+      - name: Restore User Designs
+        uses: actions/cache/restore@v5
+        with:
+          path: user_designs/
+          key: cache-user-designs-${{ matrix.fabric }}-${{ matrix.pdk }}-${{ matrix.scl }}-${{ env.REPO_SHORT_HASH }}
+          fail-on-cache-miss: true
+      - name: Run RTL simulation (all_ones)
+        run: |
+          TESTCASE=all_ones nix develop --command bash -c "cd tb; python3 chip_top_tb.py"
+          # cocotb also returns 0 upon failure
+          # check the simulation results
+          ! grep failure tb/sim_build/results.xml
+      - name: Run RTL simulation (all_zeros)
+        run: |
+          TESTCASE=all_ones nix develop --command bash -c "cd tb; python3 chip_top_tb.py"
+          # cocotb also returns 0 upon failure
+          # check the simulation results
+          ! grep failure tb/sim_build/results.xml
+      - name: Run RTL simulation (counter_top)
+        run: |
+          TESTCASE=counter_top nix develop --command bash -c "cd tb; python3 chip_top_tb.py"
+          # cocotb also returns 0 upon failure
+          # check the simulation results
+          ! grep failure tb/sim_build/results.xml
+      - name: Run RTL simulation (trigger_slot)
+        run: |
+          TESTCASE=trigger_slot nix develop --command bash -c "cd tb; python3 chip_top_tb.py"
+          # cocotb also returns 0 upon failure
+          # check the simulation results
+          ! grep failure tb/sim_build/results.xml
+      - name: Implement the Chip
+        if: success() || failure()
+        run: |
+          nix develop --command make librelane-condensed
+      - name: Create summary
+        if: success() || failure()
+        run: |
+          echo "# Manufacturability" >> $GITHUB_STEP_SUMMARY
+          cat librelane/runs/*/*-misc-reportmanufacturability/manufacturability.rpt >> $GITHUB_STEP_SUMMARY
+      - name: Print the hash
+        if: success() || failure()
+        run: |
+          shasum final/gds/*
+      - name: Upload GDS
+        if: success() || failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gds
+          path: final/gds/*
+      - name: Upload image
+        if: success() || failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: image
+          path: final/render/*.png

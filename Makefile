@@ -35,6 +35,10 @@ librelane:
 	librelane librelane/config.yaml --pdk ${PDK} --save-views-to macro/
 .PHONY: librelane
 
+librelane-condensed:
+	librelane librelane/config.yaml --pdk ${PDK} --save-views-to macro/ --condensed
+.PHONY: librelane-condensed
+
 librelane-openroad:
 	librelane librelane/config.yaml --pdk ${PDK} --last-run --flow OpenInOpenROAD
 .PHONY: librelane
