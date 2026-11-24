@@ -20,7 +20,11 @@ module fabric_wrapper #(
     // I/Os West
     input  [FABRIC_NUM_IO_WEST-1:0]      io_west_in_i,
     output [FABRIC_NUM_IO_WEST-1:0]      io_west_out_o,
-    output [FABRIC_NUM_IO_WEST-1:0]      io_west_oe_o
+    output [FABRIC_NUM_IO_WEST-1:0]      io_west_oe_o,
+
+    // WARMBOOT
+    output       fabric_warmboot_trigger_o,
+    output [3:0] fabric_warmboot_slot_o
 );
 
     // Clock and reset
@@ -560,7 +564,14 @@ module fabric_wrapper #(
         .Tile_X20Y14_EXT_RESULT_READY (RERAM1_RESULT_READY),
 
         // SYS_RESET
-        .Tile_X0Y19_SYS_RESET_RESET_top(sys_reset_i)
+        .Tile_X0Y19_SYS_RESET_RESET_top(sys_reset_i),
+        
+        // WARMBOOT
+        .Tile_X1Y19_TRIGGER_top(fabric_warmboot_trigger_o),
+        .Tile_X1Y19_SLOT_top0(fabric_warmboot_slot_o[0]),
+        .Tile_X1Y19_SLOT_top1(fabric_warmboot_slot_o[1]),
+        .Tile_X1Y19_SLOT_top2(fabric_warmboot_slot_o[2]),
+        .Tile_X1Y19_SLOT_top3(fabric_warmboot_slot_o[3])
     );
 
     (* keep *) sky130_bmlabs_reram__cim32x32 reram_0 (

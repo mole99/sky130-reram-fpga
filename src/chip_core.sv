@@ -53,13 +53,12 @@ module chip_core (
     assign fabric_io_out_o = fabric_io_west_out_o;
     assign fabric_io_oe_o = fabric_io_west_oe_o;
     
-    // TODO: hardwired for now
-    wire fpga_config_slot_i = '0;
-    wire fpga_config_trigger_i = '0;
-    
     // Fabric config is currently
     // configuring the fabric
     wire            fabric_config_busy;
+    
+    wire       fpga_config_trigger;
+    wire [3:0] fpga_config_slot;
     
     // Fabric is configured
     wire            fabric_config_configured;
@@ -189,8 +188,8 @@ module chip_core (
                 spi_bitstream_valid = spi_controller_bitstream_valid_o;
                 
                 // Slot and trigger
-                spi_controller_slot_i   = startup_trigger ? '0 : fpga_config_slot_i; // Always boot from slot 0
-                spi_controller_start_i  = startup_trigger || (fpga_config_trigger_i && !(fabric_config_busy || fabric_spi_controller_busy));
+                spi_controller_slot_i   = startup_trigger ? '0 : fpga_config_slot; // Always boot from slot 0
+                spi_controller_start_i  = startup_trigger || (fpga_config_trigger && !(fabric_config_busy || fabric_spi_controller_busy));
                 
             end else begin
                 // SPI receiver
@@ -299,7 +298,11 @@ module chip_core (
         // I/Os West
         .io_west_in_i  (fabric_io_west_in_i),
         .io_west_out_o (fabric_io_west_out_o),
-        .io_west_oe_o  (fabric_io_west_oe_o)
+        .io_west_oe_o  (fabric_io_west_oe_o),
+        
+        // WARMBOOT
+        .fabric_warmboot_trigger_o (fpga_config_trigger),
+        .fabric_warmboot_slot_o    (fpga_config_slot)
     );
-    
+
 endmodule

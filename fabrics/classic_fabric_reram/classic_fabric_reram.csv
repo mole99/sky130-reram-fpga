@@ -18,7 +18,7 @@ W_IO2,LUT4x8_ha,LUT4x8_ha,RegFile,LUT4x8_ha,LUT4x8_ha,MACC_top,LUT4x8_ha,LUT4x8_
 W_IO2,LUT4x8_ha,LUT4x8_ha,RegFile,LUT4x8_ha,LUT4x8_ha,MACC_bot,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,RegFile,LUT4x8_ha,LUT4x8_ha,MACC_bot,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,E_RERAM_term_single
 W_IO2,LUT4x8_ha,LUT4x8_ha,RegFile,LUT4x8_ha,LUT4x8_ha,MACC_top,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,RegFile,LUT4x8_ha,LUT4x8_ha,MACC_top,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,E_RERAM_term_single
 W_IO2,LUT4x8_ha,LUT4x8_ha,RegFile,LUT4x8_ha,LUT4x8_ha,MACC_bot,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,RegFile,LUT4x8_ha,LUT4x8_ha,MACC_bot,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,LUT4x8_ha,E_RERAM_term_single
-SW_term,S_term_single,S_term_single,S_term_RegFile,S_term_single,S_term_single,S_term_MACC,S_term_single,S_term_single,S_term_single,S_term_single,S_term_RegFile,S_term_single,S_term_single,S_term_MACC,S_term_single,S_term_single,S_term_single,S_term_single,S_term_single,SE_RERAM_term
+SW_term,S_WARMBOOT,S_term_single,S_term_RegFile,S_term_single,S_term_single,S_term_MACC,S_term_single,S_term_single,S_term_single,S_term_single,S_term_RegFile,S_term_single,S_term_single,S_term_MACC,S_term_single,S_term_single,S_term_single,S_term_single,S_term_single,SE_RERAM_term
 FabricEnd,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,
 ParametersBegin,,,,,,,,,,,,,,,,,,,,
@@ -53,6 +53,7 @@ Tile,../../ip/fabulous-tiles/tiles/classic/MACC/MACC_top/MACC_top.csv,,,,,,,,,,,
 Tile,../../ip/fabulous-tiles/tiles/classic/MACC/MACC_bot/MACC_bot.csv,,,,,,,,,,,,,,,,,,,
 Tile,../../ip/fabulous-tiles/tiles/classic/N_term_MACC/N_term_MACC.csv,,,,,,,,,,,,,,,,,,,
 Tile,../../ip/fabulous-tiles/tiles/classic/S_term_MACC/S_term_MACC.csv,,,,,,,,,,,,,,,,,,,
+Tile,../../ip/fabulous-tiles/tiles/classic/S_WARMBOOT/S_WARMBOOT.csv,,,,,,,,,,,,,,,,,,,
 Tile,../../ip/extra-tiles/tiles/classic/E_RERAM/E_RERAM_top/E_RERAM_top.csv,,,,,,,,,,,,,,,,,,,
 Tile,../../ip/extra-tiles/tiles/classic/E_RERAM/E_RERAM_bot/E_RERAM_bot.csv,,,,,,,,,,,,,,,,,,,
 Tile,../../ip/extra-tiles/tiles/classic/NE_RERAM_term/NE_RERAM_term.csv,,,,,,,,,,,,,,,,,,,

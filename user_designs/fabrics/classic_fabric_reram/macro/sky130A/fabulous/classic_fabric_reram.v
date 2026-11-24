@@ -417,6 +417,11 @@ module classic_fabric_reram
         output  Tile_X0Y18_B_IN_top, //EXTERNAL
         output  Tile_X0Y18_B_EN_top, //EXTERNAL
         input  Tile_X0Y19_SYS_RESET_RESET_top, //EXTERNAL
+        output  Tile_X1Y19_SLOT_top0, //EXTERNAL
+        output  Tile_X1Y19_SLOT_top1, //EXTERNAL
+        output  Tile_X1Y19_SLOT_top2, //EXTERNAL
+        output  Tile_X1Y19_SLOT_top3, //EXTERNAL
+        output  Tile_X1Y19_TRIGGER_top, //EXTERNAL
         input  [(FrameBitsPerRow*20)-1:0] FrameData, //CONFIG_PORT
         input  [(MaxFramesPerCol*21)-1:0] FrameStrobe //CONFIG_PORT
 );
@@ -31596,13 +31601,13 @@ assign Column_X20_FrameStrobe = FrameStrobe[MaxFramesPerCol*(20+1)-1:MaxFramesPe
 
  //tile IO port will get directly connected to top-level tile module
  (* keep *)
-(* keep *) S_term_single
+(* keep *) S_WARMBOOT
 `ifdef EMULATION
     #(
     .Emulate_Bitstream(`Tile_X1Y19_Emulate_Bitstream)
     )
 `endif
-    Tile_X1Y19_S_term_single
+    Tile_X1Y19_S_WARMBOOT
     (
     .E_GBUF_END(Tile_X0Y19_E_GBUF_BEG),
     .S1END(Tile_X1Y18_S1BEG),
@@ -31620,6 +31625,11 @@ assign Column_X20_FrameStrobe = FrameStrobe[MaxFramesPerCol*(20+1)-1:MaxFramesPe
     .N4BEG(Tile_X1Y19_N4BEG),
     .NN4BEG(Tile_X1Y19_NN4BEG),
     .Co(Tile_X1Y19_Co),
+    .SLOT_top0(Tile_X1Y19_SLOT_top0),
+    .SLOT_top1(Tile_X1Y19_SLOT_top1),
+    .SLOT_top2(Tile_X1Y19_SLOT_top2),
+    .SLOT_top3(Tile_X1Y19_SLOT_top3),
+    .TRIGGER_top(Tile_X1Y19_TRIGGER_top),
     .FrameData(Tile_X0Y19_FrameData_O),
     .FrameData_O(Tile_X1Y19_FrameData_O),
     .FrameStrobe(Column_X1_FrameStrobe),
