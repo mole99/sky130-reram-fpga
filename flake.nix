@@ -9,9 +9,9 @@
   };
 
   inputs = {
-    librelane.url = "github:librelane/librelane/dev";
+    librelane.url = "github:librelane/librelane/leo/openroad-write-lef";
     librelane_plugin_fabulous = {
-      url = "github:mole99/librelane_plugin_fabulous/1.15.1";
+      url = "github:mole99/librelane_plugin_fabulous/1.18.1";
       inputs.librelane.follows = "librelane";
     };
   };

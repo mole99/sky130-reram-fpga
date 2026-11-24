@@ -1,27 +1,5 @@
 {
   "nodes": {
-    "ciel": {
-      "inputs": {
-        "nix-eda": [
-          "librelane",
-          "nix-eda"
-        ]
-      },
-      "locked": {
-        "lastModified": 1792594071,
-        "narHash": "sha256-IEeNYjmA7geiHCVzjadDzy77STbbWmie47HF63bqMqk=",
-        "owner": "fossi-foundation",
-        "repo": "ciel",
-        "rev": "d2eb3cf1c43f0f8522e93c537f8fca50781216d5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "fossi-foundation",
-        "ref": "3.2.0",
-        "repo": "ciel",
-        "type": "github"
-      }
-    },
     "devshell": {
       "inputs": {
         "nixpkgs": [
@@ -62,22 +40,21 @@
     },
     "librelane": {
       "inputs": {
-        "ciel": "ciel",
         "devshell": "devshell",
         "flake-compat": "flake-compat",
         "nix-eda": "nix-eda"
       },
       "locked": {
-        "lastModified": 1794203779,
-        "narHash": "sha256-zJv4yejk3EKYki4lHpbITE4M3L5Rtw0xMRUHxtDpDV8=",
+        "lastModified": 1795509790,
+        "narHash": "sha256-GusFGYpmyLOzaOFqA1hi3eLJkoJTuh8Rcuuiu5T/TyE=",
         "owner": "librelane",
         "repo": "librelane",
-        "rev": "37fb8a7ae76d1fbbe07c96ff694cb93ce3987e0e",
+        "rev": "60ceaf47d3bf6b5e2a5c35b7f8e859da05ae2e79",
         "type": "github"
       },
       "original": {
         "owner": "librelane",
-        "ref": "dev",
+        "ref": "leo/openroad-write-lef",
         "repo": "librelane",
         "type": "github"
       }
@@ -89,16 +66,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1794157925,
-        "narHash": "sha256-JFFweRIrWuV0BpmKHHJHJ3hHPDfkCP75jO9Z8K0Hcw4=",
+        "lastModified": 1795510516,
+        "narHash": "sha256-CakCuFS6oaKwzUummzeW5xp2XFXUqplSEx0syceMYKw=",
         "owner": "mole99",
         "repo": "librelane_plugin_fabulous",
-        "rev": "985155363f6b20098bc5659b0bab041c889b041c",
+        "rev": "89d29dc127c0549cc477853944cc33ff85412e17",
         "type": "github"
       },
       "original": {
         "owner": "mole99",
-        "ref": "1.15.1",
+        "ref": "1.18.1",
         "repo": "librelane_plugin_fabulous",
         "type": "github"
       }
@@ -108,16 +85,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1794131366,
-        "narHash": "sha256-ZtcI88sRJtKcSooxPkOx4H43sy8odrFYLY37JObbUhI=",
+        "lastModified": 1795176084,
+        "narHash": "sha256-geJM8T3efY5Uza3GHq3YWrqPk5WNVDggDt3GaWLI2pI=",
         "owner": "fossi-foundation",
         "repo": "nix-eda",
-        "rev": "2aa1145c9b07048329d7cc45350647f45da87373",
+        "rev": "daa7016899028a984a82c62a15201dd4531b8823",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
-        "ref": "7.19.0",
+        "ref": "7.21.0",
         "repo": "nix-eda",
         "type": "github"
       }

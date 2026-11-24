@@ -6,7 +6,7 @@ meta:
     Magic.DRC: null
     KLayout.DRC: null
     
-    Magic.WriteLEF: KLayout.WriteLEF
+    Magic.WriteLEF: OpenROAD.WriteLEF
 
 # No antenna repair - we don't have
 # standard cells at the top-level
