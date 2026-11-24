@@ -253,6 +253,9 @@ jobs:
           path: user_designs/
           key: cache-user-designs-${{ matrix.fabric }}-${{ matrix.pdk }}-${{ matrix.scl }}-${{ env.REPO_SHORT_HASH }}
           fail-on-cache-miss: true
+      - name: Clone the PDK
+        run: |
+          nix develop --command make clone-pdk
       - name: Run RTL simulation (all_ones)
         run: |
           TESTCASE=all_ones nix develop --command bash -c "cd tb; python3 chip_top_tb.py"

@@ -12,6 +12,10 @@ FABRICS_COPY := $(addsuffix -copy,$(FABRICS))
 all: $(FABRICS)
 .PHONY: all
 
+clone-pdk:
+	ciel enable --pdk sky130A 2fdf40d5736413bb321c31418462aefc17b919b8
+.PHONY: clone-pdk
+
 $(FABRICS):
 	librelane --pdk ${PDK} ${OPTS} fabrics/$@/config.yaml --save-views-to fabrics/$@/macro/${PDK}/
 .PHONY: $(FABRICS)
