@@ -13,7 +13,7 @@ from librelane.steps.step import (
     ViewsUpdate,
     MetricsUpdate,
 )
-from librelane.steps.common_variables import io_layer_variables
+from librelane.steps.common import io_layer_variables
 from librelane.flows import Flow, FlowError
 from librelane.state import DesignFormat, State
 from librelane.common import Path, aggregate_metrics
@@ -47,48 +47,6 @@ DesignFormat(
     alts=["OASIS"],
     multiple=True,
 ).register()
-
-
-@Step.factory.register()
-class WriteLEF(KLayoutStep):
-    """
-    Writes LEF from GDS.
-    """
-
-    id = "KLayout.WriteLEF"
-    name = "Write LEF"
-    long_name = "Writes LEF from GDS using KLayout"
-
-    inputs = [
-        DesignFormat.GDS,
-    ]
-    outputs = [
-        DesignFormat.LEF
-    ]
-
-    def run(self, state_in: State, **kwargs) -> Tuple[ViewsUpdate, MetricsUpdate]:
-        views_updates: ViewsUpdate = {}
-
-        gds_in = state_in[DesignFormat.GDS]
-        lef_out = os.path.join(
-            self.step_dir,
-            f"{self.config['DESIGN_NAME']}.{DesignFormat.LEF.extension}",
-        )
-        
-        script = os.path.join(os.path.dirname(__file__), "scripts", "write_lef.py")
-
-        self.run_pya_script(
-            [
-                sys.executable,
-                script,
-                gds_in,
-                lef_out,
-            ]
-        )
-
-        views_updates[DesignFormat.LEF] = Path(lef_out)
-
-        return views_updates, {}
 
 
 @Step.factory.register()
