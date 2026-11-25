@@ -124,44 +124,46 @@ module chip_top_tb;
     
     wire fabric_io_PAD_0, fabric_io_PAD_1, fabric_io_PAD_2, fabric_io_PAD_3, fabric_io_PAD_4, fabric_io_PAD_5, fabric_io_PAD_6, fabric_io_PAD_7, fabric_io_PAD_8, fabric_io_PAD_9, fabric_io_PAD_10, fabric_io_PAD_11, fabric_io_PAD_12, fabric_io_PAD_13, fabric_io_PAD_14, fabric_io_PAD_15, fabric_io_PAD_16, fabric_io_PAD_17, fabric_io_PAD_18, fabric_io_PAD_19, fabric_io_PAD_20, fabric_io_PAD_21, fabric_io_PAD_22, fabric_io_PAD_23, fabric_io_PAD_24, fabric_io_PAD_25, fabric_io_PAD_26, fabric_io_PAD_27, fabric_io_PAD_28, fabric_io_PAD_29, fabric_io_PAD_30, fabric_io_PAD_31, fabric_io_PAD_32, fabric_io_PAD_33, fabric_io_PAD_34, fabric_io_PAD_35;
     
-    assign fabric_io_PAD_0 = fabric_io_PAD[0];
-    assign fabric_io_PAD_1 = fabric_io_PAD[1];
-    assign fabric_io_PAD_2 = fabric_io_PAD[2];
-    assign fabric_io_PAD_3 = fabric_io_PAD[3];
-    assign fabric_io_PAD_4 = fabric_io_PAD[4];
-    assign fabric_io_PAD_5 = fabric_io_PAD[5];
-    assign fabric_io_PAD_6 = fabric_io_PAD[6];
-    assign fabric_io_PAD_7 = fabric_io_PAD[7];
-    assign fabric_io_PAD_8 = fabric_io_PAD[8];
-    assign fabric_io_PAD_9 = fabric_io_PAD[9];
-    assign fabric_io_PAD_10 = fabric_io_PAD[10];
-    assign fabric_io_PAD_11 = fabric_io_PAD[11];
-    assign fabric_io_PAD_12 = fabric_io_PAD[12];
-    assign fabric_io_PAD_13 = fabric_io_PAD[13];
-    assign fabric_io_PAD_14 = fabric_io_PAD[14];
-    assign fabric_io_PAD_15 = fabric_io_PAD[15];
-    assign fabric_io_PAD_16 = fabric_io_PAD[16];
-    assign fabric_io_PAD_17 = fabric_io_PAD[17];
-    assign fabric_io_PAD_18 = fabric_io_PAD[18];
-    assign fabric_io_PAD_19 = fabric_io_PAD[19];
-    assign fabric_io_PAD_20 = fabric_io_PAD[20];
-    assign fabric_io_PAD_21 = fabric_io_PAD[21];
-    assign fabric_io_PAD_22 = fabric_io_PAD[22];
-    assign fabric_io_PAD_23 = fabric_io_PAD[23];
-    assign fabric_io_PAD_24 = fabric_io_PAD[24];
-    assign fabric_io_PAD_25 = fabric_io_PAD[25];
-    assign fabric_io_PAD_26 = fabric_io_PAD[26];
-    assign fabric_io_PAD_27 = fabric_io_PAD[27];
-    assign fabric_io_PAD_28 = fabric_io_PAD[28];
-    assign fabric_io_PAD_29 = fabric_io_PAD[29];
-    assign fabric_io_PAD_30 = fabric_io_PAD[30];
-    assign fabric_io_PAD_31 = fabric_io_PAD[31];
-    assign fabric_io_PAD_32 = fabric_io_PAD[32];
-    assign fabric_io_PAD_33 = fabric_io_PAD[33];
-    assign fabric_io_PAD_34 = fabric_io_PAD[34];
-    assign fabric_io_PAD_35 = fabric_io_PAD[35];
+    // Split the vector into bits, so that
+    // cocotb can access them individually.
+    // Connection needs to be bidirectinal.
+    tran (fabric_io_PAD_0, fabric_io_PAD[0]);
+    tran (fabric_io_PAD_1, fabric_io_PAD[1]);
+    tran (fabric_io_PAD_2, fabric_io_PAD[2]);
+    tran (fabric_io_PAD_3, fabric_io_PAD[3]);
+    tran (fabric_io_PAD_4, fabric_io_PAD[4]);
+    tran (fabric_io_PAD_5, fabric_io_PAD[5]);
+    tran (fabric_io_PAD_6, fabric_io_PAD[6]);
+    tran (fabric_io_PAD_7, fabric_io_PAD[7]);
+    tran (fabric_io_PAD_8, fabric_io_PAD[8]);
+    tran (fabric_io_PAD_9, fabric_io_PAD[9]);
+    tran (fabric_io_PAD_10, fabric_io_PAD[10]);
+    tran (fabric_io_PAD_11, fabric_io_PAD[11]);
+    tran (fabric_io_PAD_12, fabric_io_PAD[12]);
+    tran (fabric_io_PAD_13, fabric_io_PAD[13]);
+    tran (fabric_io_PAD_14, fabric_io_PAD[14]);
+    tran (fabric_io_PAD_15, fabric_io_PAD[15]);
+    tran (fabric_io_PAD_16, fabric_io_PAD[16]);
+    tran (fabric_io_PAD_17, fabric_io_PAD[17]);
+    tran (fabric_io_PAD_18, fabric_io_PAD[18]);
+    tran (fabric_io_PAD_19, fabric_io_PAD[19]);
+    tran (fabric_io_PAD_20, fabric_io_PAD[20]);
+    tran (fabric_io_PAD_21, fabric_io_PAD[21]);
+    tran (fabric_io_PAD_22, fabric_io_PAD[22]);
+    tran (fabric_io_PAD_23, fabric_io_PAD[23]);
+    tran (fabric_io_PAD_24, fabric_io_PAD[24]);
+    tran (fabric_io_PAD_25, fabric_io_PAD[25]);
+    tran (fabric_io_PAD_26, fabric_io_PAD[26]);
+    tran (fabric_io_PAD_27, fabric_io_PAD[27]);
+    tran (fabric_io_PAD_28, fabric_io_PAD[28]);
+    tran (fabric_io_PAD_29, fabric_io_PAD[29]);
+    tran (fabric_io_PAD_30, fabric_io_PAD[30]);
+    tran (fabric_io_PAD_31, fabric_io_PAD[31]);
+    tran (fabric_io_PAD_32, fabric_io_PAD[32]);
+    tran (fabric_io_PAD_33, fabric_io_PAD[33]);
+    tran (fabric_io_PAD_34, fabric_io_PAD[34]);
+    tran (fabric_io_PAD_35, fabric_io_PAD[35]);
 
-    // greyhound instance
     double_wide_openframe_project_wrapper double_wide_openframe_project_wrapper (
         `ifdef USE_POWER_PINS
         .vddio,
