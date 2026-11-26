@@ -14,17 +14,29 @@ module fabric_wrapper #(
     input  logic [(MAX_FRAMES_PER_COL*FABRIC_NUM_COLUMNS)-1:0] frame_strobe_i,
 
     // Fabric is configured
-    input                                configured_i,
-    input                                sys_reset_i,
+    input  logic                               configured_i,
+    input  logic                               sys_reset_i,
 
     // I/Os West
-    input  [FABRIC_NUM_IO_WEST-1:0]      io_west_in_i,
-    output [FABRIC_NUM_IO_WEST-1:0]      io_west_out_o,
-    output [FABRIC_NUM_IO_WEST-1:0]      io_west_oe_o,
+    input  logic [FABRIC_NUM_IO_WEST-1:0]      io_west_in_i,
+    output logic [FABRIC_NUM_IO_WEST-1:0]      io_west_out_o,
+    output logic [FABRIC_NUM_IO_WEST-1:0]      io_west_oe_o,
 
     // WARMBOOT
-    output       fabric_warmboot_trigger_o,
-    output [3:0] fabric_warmboot_slot_o
+    output logic       fabric_warmboot_trigger_o,
+    output logic [3:0] fabric_warmboot_slot_o,
+    
+    // Analog
+    inout wire analog_Iref,
+    inout wire analog_Vcc_read,
+    inout wire analog_Vcomp,
+    inout wire analog_Bias_comp2,
+    inout wire analog_Vcc_wl_read,
+    inout wire analog_Vcc_wl_set,
+    inout wire analog_Vbias,
+    inout wire analog_Vcc_wl_reset,
+    inout wire analog_Vcc_set,
+    inout wire analog_dc_bias
 );
 
     // Clock and reset
@@ -575,6 +587,11 @@ module fabric_wrapper #(
     );
 
     (* keep *) sky130_bmlabs_reram__cim32x32 reram_0 (
+
+        // Interface ownership and level-shifter control
+        .interface_sel (1'b0), // select direct interface
+        .i_Levelsh_enable (1'b0), // active-low, enable levelshifters
+
         // Clock and reset
         .clk_i (RERAM0_CLK),
         .rst_i (RERAM0_RST),
@@ -614,6 +631,16 @@ module fabric_wrapper #(
         .o_result_data (RERAM0_RESULT_DATA),
         .o_result_last (RERAM0_RESULT_LAST),
 
+        // Wishbone packet interface; active when interface_sel is high
+        .wbs_stb_i ('0),
+        .wbs_cyc_i ('0),
+        .wbs_we_i ('0),
+        .wbs_sel_i ('0),
+        .wbs_dat_i ('0),
+        .wbs_adr_i ('0),
+        .wbs_dat_o (),
+        .wbs_ack_o (),
+
         // Scan and test pins
         .ScanInCC ('0),
         .ScanInDL ('0),
@@ -621,6 +648,18 @@ module fabric_wrapper #(
         .ScanOutCC (),
         .TM ('0),
 
+        // Analog-pad pins; route on met3 with a matching-or-wider 1.30 um NDR
+        /*.Iref (analog_Iref),                  // 100 uA current reference
+        .Vcc_read (analog_Vcc_read),          // 0.3 V read rail
+        .Vcomp (analog_Vcomp),                // 0.6 V comparator/reference bias
+        .Bias_comp2 (analog_Bias_comp2),      // 0.6 V comparator bias
+        .Vcc_wl_read (analog_Vcc_wl_read),    // 0.7 V wordline read rail
+        .Vcc_wl_set (analog_Vcc_wl_set),      // 1.8 V wordline set rail
+        .Vbias (analog_Vbias),                // 1.8 V analog bias
+        .Vcc_wl_reset (analog_Vcc_wl_reset),  // 2.6 V wordline reset rail
+        .Vcc_set (analog_Vcc_set),            // 3.3 V array set rail
+        .dc_bias (analog_dc_bias)*/             // externally driven; value is design-specific
+        
         // Analog-pad pins; route on met3 with a matching-or-wider 1.30 um NDR
         .Iref (),           // 100 uA current reference
         .Vcc_read (),       // 0.3 V read rail
@@ -632,9 +671,15 @@ module fabric_wrapper #(
         .Vcc_wl_reset (),   // 2.6 V wordline reset rail
         .Vcc_set (),        // 3.3 V array set rail
         .dc_bias ()         // externally driven; value is design-specific
+        
     );
 
     (* keep *) sky130_bmlabs_reram__cim32x32 reram_1 (
+
+        // Interface ownership and level-shifter control
+        .interface_sel (1'b0), // select direct interface
+        .i_Levelsh_enable (1'b0), // active-low, enable levelshifters
+
         // Clock and reset
         .clk_i (RERAM1_CLK),
         .rst_i (RERAM1_RST),
@@ -674,6 +719,16 @@ module fabric_wrapper #(
         .o_result_data (RERAM1_RESULT_DATA),
         .o_result_last (RERAM1_RESULT_LAST),
 
+        // Wishbone packet interface; active when interface_sel is high
+        .wbs_stb_i ('0),
+        .wbs_cyc_i ('0),
+        .wbs_we_i ('0),
+        .wbs_sel_i ('0),
+        .wbs_dat_i ('0),
+        .wbs_adr_i ('0),
+        .wbs_dat_o (),
+        .wbs_ack_o (),
+
         // Scan and test pins
         .ScanInCC ('0),
         .ScanInDL ('0),
@@ -681,6 +736,18 @@ module fabric_wrapper #(
         .ScanOutCC (),
         .TM ('0),
 
+        // Analog-pad pins; route on met3 with a matching-or-wider 1.30 um NDR
+        /*.Iref (analog_Iref),                  // 100 uA current reference
+        .Vcc_read (analog_Vcc_read),          // 0.3 V read rail
+        .Vcomp (analog_Vcomp),                // 0.6 V comparator/reference bias
+        .Bias_comp2 (analog_Bias_comp2),      // 0.6 V comparator bias
+        .Vcc_wl_read (analog_Vcc_wl_read),    // 0.7 V wordline read rail
+        .Vcc_wl_set (analog_Vcc_wl_set),      // 1.8 V wordline set rail
+        .Vbias (analog_Vbias),                // 1.8 V analog bias
+        .Vcc_wl_reset (analog_Vcc_wl_reset),  // 2.6 V wordline reset rail
+        .Vcc_set (analog_Vcc_set),            // 3.3 V array set rail
+        .dc_bias (analog_dc_bias)*/             // externally driven; value is design-specific
+        
         // Analog-pad pins; route on met3 with a matching-or-wider 1.30 um NDR
         .Iref (),           // 100 uA current reference
         .Vcc_read (),       // 0.3 V read rail

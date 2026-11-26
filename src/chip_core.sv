@@ -32,7 +32,19 @@ module chip_core (
     // I/Os FPGA
     input  wire [36-1:0] fabric_io_in_i,
     output wire [36-1:0] fabric_io_out_o,
-    output wire [36-1:0] fabric_io_oe_o
+    output wire [36-1:0] fabric_io_oe_o,
+
+    // Analog
+    inout wire analog_Iref,
+    inout wire analog_Vcc_read,
+    inout wire analog_Vcomp,
+    inout wire analog_Bias_comp2,
+    inout wire analog_Vcc_wl_read,
+    inout wire analog_Vcc_wl_set,
+    inout wire analog_Vbias,
+    inout wire analog_Vcc_wl_reset,
+    inout wire analog_Vcc_set,
+    inout wire analog_dc_bias
 );
     
     // Fabric parameters
@@ -302,7 +314,19 @@ module chip_core (
         
         // WARMBOOT
         .fabric_warmboot_trigger_o (fpga_config_trigger),
-        .fabric_warmboot_slot_o    (fpga_config_slot)
+        .fabric_warmboot_slot_o    (fpga_config_slot),
+        
+        // Analog
+        .analog_Iref          (analog_Iref),
+        .analog_Vcc_read      (analog_Vcc_read),
+        .analog_Vcomp         (analog_Vcomp),
+        .analog_Bias_comp2    (analog_Bias_comp2),
+        .analog_Vcc_wl_read   (analog_Vcc_wl_read),
+        .analog_Vcc_wl_set    (analog_Vcc_wl_set),
+        .analog_Vbias         (analog_Vbias),
+        .analog_Vcc_wl_reset  (analog_Vcc_wl_reset),
+        .analog_Vcc_set       (analog_Vcc_set),
+        .analog_dc_bias       (analog_dc_bias)
     );
 
 endmodule

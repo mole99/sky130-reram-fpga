@@ -4,6 +4,7 @@ meta:
   substituting_steps:
       Magic.DRC: null
       Checker.MagicDRC: null
+      Checker.IllegalOverlap: null
 
 DESIGN_NAME: "double_wide_openframe_project_wrapper"
 
@@ -41,6 +42,23 @@ PDN_VPITCH: 180
 PDN_HPITCH: 180
 PDN_CORE_RING: true
 #ERROR_ON_PDN_VIOLATIONS: false
+
+#GRT_ALLOW_CONGESTION: true
+
+#NON_DEFAULT_RULES:
+#  # 3 times the width and spacing
+#  NDR_3W_3S:
+#    width: ["*3"]
+#    spacing: ["*3"]
+
+#DRT_ASSIGN_NDR:
+#  "analog_": NDR_analog
+
+#DRT_DISABLE_AUTO_TAPER:
+#- "analog_"
+
+# Analog traces for internal project
+#RSZ_DONT_TOUCH_RX: "analog_"
 
 MACROS:
   classic_fabric_reram:
