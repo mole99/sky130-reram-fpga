@@ -45,16 +45,16 @@
         "nix-eda": "nix-eda"
       },
       "locked": {
-        "lastModified": 1795697681,
+        "lastModified": 1795739518,
         "narHash": "sha256-NR1/4hViHBtscReOBDKE33XcUVJFBhQncs7eqbRMbxE=",
         "owner": "librelane",
         "repo": "librelane",
-        "rev": "2c335a43f8e9586e6d4b8d2b6b0dd0176e96a768",
+        "rev": "68c3e47f86bf7755a50cff9c1bea3f0b99eb0b67",
         "type": "github"
       },
       "original": {
         "owner": "librelane",
-        "ref": "leo/openroad-write-lef",
+        "ref": "dev",
         "repo": "librelane",
         "type": "github"
       }
